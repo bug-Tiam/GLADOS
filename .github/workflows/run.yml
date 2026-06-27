@@ -11,6 +11,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0 # 必须加上，否则无法提交推送
       - uses: actions/setup-node@v3
         with:
           node-version: 18
@@ -19,3 +21,12 @@ jobs:
         env:
           GLADOS: ${{ secrets.GLADOS }}
           NOTIFY: ${{ secrets.NOTIFY }}
+
+      # 新增：保活空提交，避免定时任务闲置禁用
+      - name: Keep repo active
+        if: github.ref == 'refs/heads/main' # 改成你的默认分支，如master
+        run: |
+          git config --global user.name "Github Bot"
+          git config --global user.email "bot@example.com"
+          git commit --allow-empty -m "auto keepalive to prevent workflow disable $(date)"
+          git push
